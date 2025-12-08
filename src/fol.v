@@ -1,3 +1,5 @@
+Require Import List.
+
 (* We aim to define the fundamentals of first order logic *)
 
 Record Language : Type := {
@@ -63,6 +65,25 @@ Definition LTerm := Term.
 Definition LTerms := Terms.
 Definition Formulas := list Formula.
 
+Fixpoint accum_list (l : list Term) : nat :=
+  match l with
+  | nil => 0
+  | cons t ts => 1 + (accum_list ts)
+  end.
+
+Inductive In_stage : nat -> Term -> Prop :=
+| Var: forall v n,
+    In_stage n (var v)
+| Func: forall f args n, (forall t, In t args -> In_stage n t) -> In_stage (S n) (func f args).
+
+Lemma In_stage_mono :
+  forall k n t, In_stage k t -> k <= n -> In_stage n t.
+Proof.
+  intros k n t IS H. induction IS.
+    - constructor.
+    - inversion H.
+      + apply Func. assumption. 
+      + apply Func. subst. apply le_S_n in H. inversion H. subst. assumption. intros t HIS. rewrite H4. apply H0 in HIS. rewrite <- H4 in H2. Admitted. 
 (* Todo: define schema for recursion, induction, then for other logical connectives, nil terms, prove decideability of things, etc. *)
 
 
