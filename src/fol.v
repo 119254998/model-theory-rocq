@@ -38,15 +38,15 @@ Definition Larity (s: LRelations + LFunctions) : nat :=
 (* The idea here is that we define terms as either variables or function applications. *)
 Inductive Term: Set := 
   | var: nat -> Term
-  | func: forall (f: LFunctions), (list Term) -> Term.
-
+  | func: forall (f: LFunctions), Terms (LarityF f) -> Term
+with Terms: nat -> Set := 
+  | Term_Nil: Terms 0
+  | Term_Cons: forall (n: nat), Term -> Terms n -> Terms (S n).
 (* Define lists of terms *)
 (*
 Type is nat -> Set, where the nat indicates the length of the list.
 *)
-Inductive Terms: nat -> Set := 
-  | Term_Nil: Terms 0
-  | Term_Cons: forall (n: nat), Term -> Terms n -> Terms (S n).
+
 (*
 Formulas are either atomic formulas (relation applications) or built up from
 other formulas using logical connectives and quantifiers.
@@ -105,20 +105,6 @@ Fixpoint accum_list (l : list Term) : nat :=
   | cons t ts => 1 + (accum_list ts)
   end.
 
-Inductive In_stage : nat -> Term -> Prop :=
-| Var: forall v n,
-    In_stage n (var v)
-| Func: forall f args n, (forall t, In t args -> In_stage n t) -> In_stage (S n) (func f args).
-
-Lemma In_stage_mono :
-  forall k n t, In_stage k t -> k <= n -> In_stage n t.
-Proof.
-  intros k n t IS H. induction IS.
-    - constructor.
-    - inversion H.
-      + apply Func. assumption. 
-+ apply Func. subst. apply le_S_n in H. inversion H. subst. assumption. intros t HIS. rewrite H4. apply H0 in HIS. rewrite <- H4 in H2. Admitted.
-
 Definition language_decideable := 
 ((forall t1 t2 : Functions L, {t1 = t2} + {t1 <> t2}) *
  (forall t1 t2 : Relations L, {t1 = t2} + {t1 <> t2}) *
@@ -131,8 +117,41 @@ Lemma depthNot :
   forall A: Formula, depth_lt A (notH A).
 Proof. unfold depth_lt. intros A. simpl. auto. Qed.
 
+Lemma nil_terms_unique:
+  forall n: nat, n=0 -> Terms n.
+Proof.
+  intros n H. rewrite H. apply nil_terms.
+Qed.
 
 
+(* 1) uniqueness for Terms 0 *)
+Lemma Terms0_unique : forall (t : Terms 0), t = Term_Nil.
+Proof.
+  intros t.
+Admitted.
+
+(* 2) decomposition for Terms (S n) *)
+Lemma cons_terms :
+  forall (n : nat) (x : Terms (S n)),
+    exists (hd : Term) (tl : Terms n), x = Term_Cons n hd tl.
+Proof.
+  intros n x.
+  destruct x as [| n' hd tl].
+    discriminate.
+  - exists hd, tl.
+    reflexivity.
+Qed.
+
+(* 3) decidability of Term equality *)
+Lemma term_dec : forall (x y : Term), {x = y} + {x <> y}.
+Proof.
+  intros x y.
+  destruct language_decideable as [Hf [Hr Hc]].
+  decide equality.
+  - apply eq_nat_dec.
+  - apply Hf.
+  - apply eq_nat_dec.
+Qed.
 End LanguageDef.
 
 (* semantics? *)
