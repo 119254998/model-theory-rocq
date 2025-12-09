@@ -15,30 +15,23 @@
 = Introduction
 == What even is "Model Theory?" 
 \
-#text(font: "New Computer Modern", size: 19pt)[
   In math, we study different types of structures and how they interact with others \ \ For example: group theory is the study of Groups, and field theory is the study of Fields \ \ Model theory is the study of mathematical structures as a whole
-]
 
 == What is a "Model"?
 \ 
-#text(font: "New Computer Modern", size: 19pt)[
   A model is a representation of a mathematical theory \ \ A mathematical theory is a collection of axioms - formal statements in a language \ \ Let's consider groups as a simple example
-]
 
 == What is a "Model"?
 \ 
-#text(font: "New Computer Modern", size: 19pt)[
   A "group" is a set, G, along with a multiplication function $dot.o : G times G arrow G$ that obeys the following axioms:
   - $forall a,b,c in G, a dot.o (b dot.o c) = (a dot.o b) dot c$
   - $exists e$ such that $forall a in G, e dot.o a = a dot.o e = a$
   - $forall a in G, exists b$ such that $a dot.o b = b dot.o a = e$
-]
 
 == What is a "Model"?
 \ 
-#text(font: "New Computer Modern", size: 19pt)[
-  One model of a group would be $ZZ$ - the integers \  \ One can check it obeys all the axioms \ \ Model theory is about arbitrary collections of functions, axioms and their models \ \ Questions we want to answer are "what can we prove using these axioms?" and "is the theory consistent?"
-]
+  One model of a group would be $ZZ$ - the integers \  \ One can check it obeys all the axioms \ \ Model theory is about arbitrary collections of functions, axioms and their models \ \ Questions we want to answer are "what can we prove using these axioms?" and "is a given theory consistent?"
+
 == Goal
 \
 - Implement Elementary Model Theory in Rocq
