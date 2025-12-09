@@ -105,20 +105,6 @@ Fixpoint accum_list (l : list Term) : nat :=
   | cons t ts => 1 + (accum_list ts)
   end.
 
-Inductive In_stage : nat -> Term -> Prop :=
-| Var: forall v n,
-    In_stage n (var v)
-| Func: forall f args n, (forall t, In t args -> In_stage n t) -> In_stage (S n) (func f args).
-
-Lemma In_stage_mono :
-  forall k n t, In_stage k t -> k <= n -> In_stage n t.
-Proof.
-  intros k n t IS H. induction IS.
-    - constructor.
-    - inversion H.
-      + apply Func. assumption. 
-+ apply Func. subst. apply le_S_n in H. inversion H. subst. assumption. intros t HIS. rewrite H4. apply H0 in HIS. rewrite <- H4 in H2. Admitted.
-
 Definition language_decideable := 
 ((forall t1 t2 : Functions L, {t1 = t2} + {t1 <> t2}) *
  (forall t1 t2 : Relations L, {t1 = t2} + {t1 <> t2}) *
