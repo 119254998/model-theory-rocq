@@ -69,16 +69,16 @@ Fixpoint depth (A : Formula) : nat :=
   | allH v f => S (depth f)
   end.
 
-Definition depth_lt (A : Formula) (n : nat) : Prop :=
-  depth A < n.
-Definition depth_le (A : Formula) (n : nat) : Prop :=
-  depth A <= n.
-Definition depth_eq (A : Formula) (n : nat) : Prop :=
-  depth A = n.
-Definition depth_ge (A : Formula) (n : nat) : Prop :=
-  depth A >= n.
-Definition depth_gt (A : Formula) (n : nat) : Prop :=
-  depth A > n.
+Definition depth_lt (A : Formula) (B: Formula) : Prop :=
+  depth A < depth B.
+Definition depth_le (A : Formula) (B: Formula) : Prop :=
+  depth A <= depth B.
+Definition depth_eq (A : Formula) (B: Formula) : Prop :=
+  depth A = depth B.
+Definition depth_ge (A : Formula) (B: Formula) : Prop :=
+  depth A >= depth B.
+Definition depth_gt (A : Formula) (B: Formula) : Prop :=
+  depth A > depth B.
 (* Some convenient notations *)
 
 Definition LFormula := Formula.
@@ -91,11 +91,11 @@ Definition Formulas := list Formula.
 (*
 Verify these with truthtables if you so wish
 *)
-Definition orH (A B: Formula) : Formula := impH (notH A) B.
-Definition andH (A B: Formula) : Formula := notH (orH (notH A) (notH B)).
-Definition iffH (A B: Formula) : Formula := 
+Definition orH (A B: Formula) := impH (notH A) B.
+Definition andH (A B: Formula) := notH (orH (notH A) (notH B)).
+Definition iffH (A B: Formula) := 
   andH (impH A B) (impH B A).
-Definition existsH (v: nat) (f: Formula) : Formula :=
+Definition existsH (v: nat) (f: Formula) :=
   notH (allH v (notH f)).
 
 (* some fixpoints and lemmas *)
@@ -117,10 +117,23 @@ Proof.
     - constructor.
     - inversion H.
       + apply Func. assumption. 
-      + apply Func. subst. apply le_S_n in H. inversion H. subst. assumption. intros t HIS. rewrite H4. apply H0 in HIS. rewrite <- H4 in H2. Admitted. 
++ apply Func. subst. apply le_S_n in H. inversion H. subst. assumption. intros t HIS. rewrite H4. apply H0 in HIS. rewrite <- H4 in H2. Admitted.
+
+Definition language_decideable := 
+((forall t1 t2 : Functions L, {t1 = t2} + {t1 <> t2}) *
+ (forall t1 t2 : Relations L, {t1 = t2} + {t1 <> t2}) *
+ (forall t1 t2 : Constants L, {t1 = t2} + {t1 <> t2}))%type.
+
+Let nil_terms : Terms 0 := Term_Nil.
+
+(* some test lemmas *)
+Lemma depthNot : 
+  forall A: Formula, depth_lt A (notH A).
+Proof. unfold depth_lt. intros A. simpl. auto. Qed.
+
+
 
 End LanguageDef.
-
 
 (* semantics? *)
 
@@ -145,3 +158,4 @@ Definition assignment (S : Structure) : Type := nat -> M S.
 Variable S : Structure.
 
 End Semantics.
+
