@@ -44,13 +44,12 @@
 Proofs requires non-trivial definitions, theorems and lemmas.
 
 == What Already Exists
-From what he have seen, it is very difficult to find Model Theory libraries and or implementations in Rocq.
-- Why?
-== Approach
-\ 
-- Define primary concepts and syntax.
-- State lemmas and work upwards towards desired theorem.
-- Restrictions on `Stdlib`
+\
+We have the basics of Peano arithmetic in the Rocq standard library
+\
+\
+Additionally, there was a crowdsourced effort that ended \~3 years ago which was able to prove Godel's first incompleteness theorem: https://github.com/rocq-community/goedel/
+
 = Our Progress
 == Sections & Definitions
 Definitions so Far:
