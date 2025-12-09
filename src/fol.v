@@ -1,4 +1,4 @@
-Require Import List.
+From Stdlib Require Import List.
 
 (* We aim to define the fundamentals of first order logic *)
 
@@ -109,3 +109,21 @@ Scheme Term_Terms_rec := Minimality for Term Sort Set.
 Scheme Terms_Term_rec := Minimality for Terms Sort Set.
 
 End LanguageDef.
+
+Section Semantics.
+
+Variable L : Language.
+Record Structure : Type := {
+  M: Type;
+  M_NE: inhabited M;
+  interpC: Constants L -> M;
+  interpR: forall R : LRelations L, list M -> Prop;
+  interpF: forall f : LFunctions L, list M -> M;
+}.
+
+(* nat comes from var def *)
+Definition assignment (S : Structure) : Type := nat -> M S.
+
+Variable S : Structure.
+
+End Semantics.
