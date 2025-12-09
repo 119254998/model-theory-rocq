@@ -75,14 +75,12 @@ Sections:
 - Getting stuck
 
 = What's Next
-== Readjusting Expectations
+== Adjustments & Takeaways
 Fallbacks:
 - Focus on most important results:
   - Gödel's Results
   - Completeness/Compactness
-
-== Takeaways
-\ \
+\
 - Rocq's "Limitations"
 - No Sandboxing
 - Acknowledging Previous Efforts
