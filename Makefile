@@ -1,13 +1,16 @@
-build: CoqMakefile
-	$(MAKE) -f CoqMakefile
+all: Makefile.coq
+	@+$(MAKE) -f Makefile.coq all
 
-CoqMakefile:
-	coq_makefile -f _CoqProject -o CoqMakefile
+clean: Makefile.coq
+	@+$(MAKE) -f Makefile.coq cleanall
+	@rm -f Makefile.coq Makefile.coq.conf
 
-clean::
-	if [ -e CoqMakefile ]; then $(MAKE) -f CoqMakefile cleanall; fi
-	$(RM) $(wildcard CoqMakefile CoqMakefile.conf) 
+Makefile.coq: _CoqProject
+	$(COQBIN)coq_makefile -f _CoqProject -o Makefile.coq
 
--include CoqMakefile
+force _CoqProject Makefile: ;
 
-.PHONY: build clean
+%: Makefile.coq force
+	@+$(MAKE) -f Makefile.coq $@
+
+.PHONY: all clean force

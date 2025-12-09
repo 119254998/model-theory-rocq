@@ -1,2 +1,4 @@
--R src/ ElmModelTheory
-src
+-Q src ElmModelTheory
+
+src/fol.v
+src/prop.v

@@ -60,11 +60,45 @@ Inductive Formula: Set :=
   | allH: nat -> Formula -> Formula
 .
 
+Fixpoint depth (A : Formula) : nat :=
+  match A with
+  | atomic r terms => 0
+  | equal t1 t2 => 0
+  | notH f => S (depth f)
+  | impH f1 f2 => S (Nat.max (depth f1) (depth f2))
+  | allH v f => S (depth f)
+  end.
+
+Definition depth_lt (A : Formula) (n : nat) : Prop :=
+  depth A < n.
+Definition depth_le (A : Formula) (n : nat) : Prop :=
+  depth A <= n.
+Definition depth_eq (A : Formula) (n : nat) : Prop :=
+  depth A = n.
+Definition depth_ge (A : Formula) (n : nat) : Prop :=
+  depth A >= n.
+Definition depth_gt (A : Formula) (n : nat) : Prop :=
+  depth A > n.
+(* Some convenient notations *)
+
 Definition LFormula := Formula.
 Definition LTerm := Term.
 Definition LTerms := Terms.
 Definition Formulas := list Formula.
 
+(* Todo: define schema for recursion, induction, then for other logical connectives, nil terms, prove decideability of things, etc. *)
+
+(*
+Verify these with truthtables if you so wish
+*)
+Definition orH (A B: Formula) : Formula := impH (notH A) B.
+Definition andH (A B: Formula) : Formula := notH (orH (notH A) (notH B)).
+Definition iffH (A B: Formula) : Formula := 
+  andH (impH A B) (impH B A).
+Definition existsH (v: nat) (f: Formula) : Formula :=
+  notH (allH v (notH f)).
+
+(* some fixpoints and lemmas *)
 Fixpoint accum_list (l : list Term) : nat :=
   match l with
   | nil => 0
@@ -84,34 +118,18 @@ Proof.
     - inversion H.
       + apply Func. assumption. 
       + apply Func. subst. apply le_S_n in H. inversion H. subst. assumption. intros t HIS. rewrite H4. apply H0 in HIS. rewrite <- H4 in H2. Admitted. 
-(* Todo: define schema for recursion, induction, then for other logical connectives, nil terms, prove decideability of things, etc. *)
-
-
-(*
-Verify these with truthtables if you so wish
-*)
-Definition orH (A B: Formula) : Formula := impH (notH A) B.
-Definition andH (A B: Formula) : Formula := notH (orH (notH A) (notH B)).
-Definition iffH (A B: Formula) : Formula := 
-  andH (impH A B) (impH B A).
-Definition existsH (v: nat) (f: Formula) : Formula :=
-  notH (allH v (notH f)).
-
-(* Schema for induction on formulas *)
-(* This fuckass language doesn't let me overload induction schemes 
-Scheme Term_ind := Induction for Term Sort Prop. *)
-
-(* Induction scheme for Terms and Term together *)
-Scheme Term_Terms_ind := Induction for Term Sort Prop.
-Scheme Terms_Term_ind := Induction for Terms Sort Prop.
-
-Scheme Term_Terms_rec := Minimality for Term Sort Set.
-Scheme Terms_Term_rec := Minimality for Terms Sort Set.
 
 End LanguageDef.
 
+
+(* semantics? *)
+
 Section Semantics.
 
+(*
+A structure for a language L consists of a non-empty set M (the domain),
+an interpretation of each constant symbol as an element of M, etc
+*)
 Variable L : Language.
 Record Structure : Type := {
   M: Type;
