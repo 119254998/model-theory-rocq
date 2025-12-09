@@ -10,7 +10,7 @@
   theme: "full",
   toc: false,
 )
-#set text(size: 14pt)
+#set text(size: 16pt)
 
 = Introduction
 == What even is "Model Theory?" 
@@ -50,6 +50,8 @@ We have the basics of Peano arithmetic in the Rocq standard library
 \
 Additionally, there was a crowdsourced effort that ended \~3 years ago which was able to prove Godel's first incompleteness theorem: https://github.com/rocq-community/goedel/
 
+From what he have seen, it is very difficult to find Model Theory libraries and or implementations in Rocq.
+- Why?
 = Our Progress
 == Sections & Definitions
 Definitions so Far:
