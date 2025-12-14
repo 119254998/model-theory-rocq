@@ -1,4 +1,1 @@
--Q src ElmModelTheory
-
-src/fol.v
-src/prop.v
+-Q . FOL

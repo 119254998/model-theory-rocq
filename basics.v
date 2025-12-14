@@ -42,6 +42,11 @@ Inductive Term: Set :=
 with Terms: nat -> Set := 
   | Term_Nil: Terms 0
   | Term_Cons: forall (n: nat), Term -> Terms n -> Terms (S n).
+
+(*
+Trouble: This definition now holds on arity, and arity is not necessarily positive if defined entirely separately.
+*)
+
 (* Define lists of terms *)
 (*
 Type is nat -> Set, where the nat indicates the length of the list.
@@ -123,38 +128,8 @@ Proof.
   intros n H. rewrite H. apply nil_terms.
 Qed.
 
-
-(* 1) uniqueness for Terms 0 *)
-Lemma Terms0_unique : forall (t : Terms 0), t = Term_Nil.
-Proof.
-  intros t.
-Admitted.
-
-(* 2) decomposition for Terms (S n) *)
-Lemma cons_terms :
-  forall (n : nat) (x : Terms (S n)),
-    exists (hd : Term) (tl : Terms n), x = Term_Cons n hd tl.
-Proof.
-  intros n x.
-  destruct x as [| n' hd tl].
-    discriminate.
-  - exists hd, tl.
-    reflexivity.
-Qed.
-
-(* 3) decidability of Term equality *)
-Lemma term_dec : forall (x y : Term), {x = y} + {x <> y}.
-Proof.
-  intros x y.
-  destruct language_decideable as [Hf [Hr Hc]].
-  decide equality.
-  - apply eq_nat_dec.
-  - apply Hf.
-  - apply eq_nat_dec.
-Qed.
-End LanguageDef.
-
 (* semantics? *)
+End LanguageDef.
 
 Section Semantics.
 
@@ -163,6 +138,7 @@ A structure for a language L consists of a non-empty set M (the domain),
 an interpretation of each constant symbol as an element of M, etc
 *)
 Variable L : Language.
+
 Record Structure : Type := {
   M: Type;
   M_NE: inhabited M;

@@ -1,16 +1,18 @@
-all: Makefile.coq
-	@+$(MAKE) -f Makefile.coq all
+COQMFFLAGS := -Q . FOL
 
-clean: Makefile.coq
-	@+$(MAKE) -f Makefile.coq cleanall
-	@rm -f Makefile.coq Makefile.coq.conf
+ALLVFILES := basics.v
 
-Makefile.coq: _CoqProject
-	$(COQBIN)coq_makefile -f _CoqProject -o Makefile.coq
+build: Makefile.coq
+	$(MAKE) -f Makefile.coq
 
-force _CoqProject Makefile: ;
+clean::
+	if [ -e Makefile.coq ]; then $(MAKE) -f Makefile.coq cleanall; fi
+	$(RM) $(wildcard Makefile.coq Makefile.coq.conf) 
 
-%: Makefile.coq force
-	@+$(MAKE) -f Makefile.coq $@
+Makefile.coq:
+	rocq makefile $(COQMFFLAGS) -o Makefile.coq $(ALLVFILES)
 
-.PHONY: all clean force
+-include Makefile.coq
+
+.PHONY: build clean
+
