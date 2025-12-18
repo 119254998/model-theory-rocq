@@ -50,6 +50,12 @@
 #let Sub = $sans("Sub")$
 #let val = $sans("val")$
 #let supp = $sans("supp")$
+#let Const = $sans("Const")$
+#let Rel = $sans("Rel")$
+#let Fun = $sans("Fun")$
+#let arity = $sans("arity")$
+#let Free = $sans("Free")$
+#let Bound = $sans("Bound")$
 
 // #align(center)[= #smallcaps([Homework X])]
 == Week 2
@@ -259,6 +265,156 @@
 #cor(name: "(Decidability of Propositional Logic)")[
   There is an $"algorithm"r$ which given a finite set of propositional formulas $Gamma$ and a formula $phi$ determines whether or not $Gamma tack.r phi$.
   \
+]
+== Week 3b
+#def[First-order Language][
+  A _first-order language_ is a set of symbols $cal(L)$ which consists of two disjoint subsets:
+  + The _logical symbols_ of $cal(L)$:
+    + A countable set of _variables_ $Var$, which we denote by $x, x_1, x_2, ..., y, y_1, y_2, ..., z, z_1, z_2, ..., "etc"$
+    + Classical logic symbols: $and, or, not, ->, <->, forall, exists$.
+    + A symbol for equality $eq^.$.
+  + The _signature_ of $cal(L)$ (the _non-logical_ symbols of $cal(L)$), these are the following three #underline[disjoint] sets:
+    + A set of _constant symbols_ $Const(cal(L))$. We usually denote (abstract) constant symbols as $underline(c), underline(c)_1, underline(c)_2, ....$
+    + A set of _relation symbols_ $Rel(cal(L))$. We will usually denote (abstract) relation symbols as $underline(R), underline(R)_1, underline(R)_2, ....$
+    + A set of _function symbols_  $Fun(cal(L))$. We will usually denote (abstract) function symbols as $underline(f), underline(f)_1, underline(f)_2, ....$.
+    As part of the signature we also have an _arity_ function:
+    $
+      arity_(cal(L)) : Rel(cal(L)) union.sq Fun(cal(L)) -> NN_(>= 1)
+    $
+    Let $underline(R) in Rel(cal(L))$. If $arity(underline(R)) = n$ then we say that $underline(R)$ is an $n$-ary relation symbol. Similarly, if $underline(f) in Fun(cal(L))$, and $arity(underline(f)) = n$ then we say that $underline(f)$ is an $n$-ary function symbol.
+]
+#def[$cal(L)$-term][
+  Let $cal(L)$ be a first-order language. The _terms_ of $cal(L)$ or $cal(L)$-terms are defined inductively, as follows:
+  + Every variable is an $cal(L)$-term.
+  + Every constant $underline(c) in Const(cal(L))$ is an $cal(L)$-term.
+  + If $underline(f) in Fun(cal(L))$ is an $n$-ary function symbol and $t_1, ..., t_n$ are $cal(L)$-terms, then $underline(f)(t_1, ..., t_n)$ is an $cal(L)$-term.
+]
+#remark[
+  Relation symbols don't show up in term building.
+]
+#lemma(num: "1.1.4")[
+  Let $cal(L)$ be a first-order language. Let $cal(T)_0$ be the set $Var(cal(L)) union Const(cal(L))$. Inductively, define $cal(T)_(n + 1)$ to be the set:
+  $
+    cal(T)_(n + 1) := cal(T)_n union {underline(f)(t_1, ..., t_k) : k in NN, underline(f) in Fun(cal(L)), arity(underline(f)) = k, t_i in cal(T)_n},
+  $
+  and let $cal(T) = union.big_(n in NN) cal(T)_n$. Then $cal(T)$ is the set of all $cal(L)$-terms.
+]
+#def[Atomic $cal(L)$-formulas][
+  The _atomic formulas_ of $cal(L)$ (or _atomic $cal(L)$-formulas)_ are defined inductively as follows:
+  + If $t_1, t_2$ are $cal(L)$-terms, then $t_1 =^. t_2$ is an atomic $cal(L)$-formula.
+  + If $underline(R) in Rel(cal(L))$ is an $n$-ary relation. Symbol and $t_1, ..., t_n$ are terms, then $underline(R)(t_1, ..., t_n)$ is an atomic $cal(L)$-formula.
+]
+#def[$cal(L)$-formulas][
+  The _formulas_ of $cal(L)$ (or $cal(L)$-formulas) are defined inductively, as follows:
+  + Every atomic $cal(L)$-formula is an $cal(L)$.
+  + If $phi$ and $psi$ are $cal(L)$-formulas, and $x in Var$, then:
+    #columns(3)[
+      $(phi and psi)$ #colbreak()
+      $(phi or psi)$ #colbreak()
+      $(phi -> psi)$ #colbreak()
+      $(not psi)$ #colbreak()
+      $(forall x)phi$ #colbreak()
+      $(exists)phi$
+    ]
+    are all $cal(L)$-formulas.
+  + That's it - all $cal(L)$ formulas are constructed by finitely many applications of (1) and (2).
+]
+#def[$Var(t)$][
+  Let $cal(L)$ be a first-order language and $t$ an $cal(L)$-term. We define the _set of variables of $t$_, denoted $Var(t)$, as follows:
+  + If $t$ is the variable $x$ then $Var(t) = {x}$.
+  + If $t$ is a constant symbol, then $Var(t) = emptyset$.
+  + If $t$ is of the form $underline(f)(t_1, ..., t_n)$ for some $n$-ary function symbol $underline(f) in Fun(cal(L))$ and $cal(L)$-terms $t_1, ..., t_n$m then $Var(t) = union.big_(i <= n) Var(t_i)$.
+  We say that $t$ is _closed_ if $Var(t) = emptyset$.
+]
+#def[$Var(phi)$][
+  Let $phi$ be an atomic $cal(L)$-formula. Then, the _set of variables of $phi$_, again denoted $Var(phi)$ is defined as follows:
+  + If $phi$ is of the form $t_1 eq^. t_2$ for $cal(L)$-terms $t_1, t_2$ then $Var(phi) = Var(t_1) union Var(t_2)$.
+  + If $phi$ is of the form $underline(R)(t_1, ..., t_n)$ for some $n$-ary relation symbol $underline(R) in Rel(cal(L))$ and $cal(L)$-terms $t_1, ..., t_n$, then $Var(phi) = union.big_(i <= n) Var(t_i)$.
+]
+#def[$Var(phi), Free(phi), Bound(phi)$][
+  Let $cal(L)$ be a first-order formula and $phi$ an $cal(L)$-formula. We define three things at the same time:
+  + The _variables_ of $phi$ denoted $Var(phi)$.
+  + The _free_ variables of $phi$, denoted $Free(phi)$.
+  + The _bound_ variables of $phi$, denoted $Bound(phi)$.
+  By indction on the structure of $phi$, as follows:
+  + If $phi$ is atomic, then $Free(phi) = Var(phi), Bound(phi) = emptyset$.
+  + Suppose we have defined our three sets for the $cal(L)$-formulas $phi_1$ and $phi_2$.
+    - $
+        Var(phi_1 and phi_2) = Var(phi_1) union Var(phi_2), \
+        Free(phi_1 and phi_2) = Free(phi_1) union Free(phi_2), \
+        Bound(phi_1 and phi_2) = Bound(phi_1) union Bound(phi_2), \
+      $
+    - $
+        Var(phi_1 or phi_2) = Var(phi_1) union Var(phi_2), \
+        Free(phi_1 or phi_2) = Free(phi_1) union Free(phi_2), \
+        Bound(phi_1 or phi_2) = Bound(phi_1) union Bound(phi_2), \
+      $
+    - $
+        Var(phi_1 -> phi_2) = Var(phi_1) union Var(phi_2), \
+        Free(phi_1 -> phi_2) = Free(phi_1) union Free(phi_2), \
+        Bound(phi_1 -> phi_2) = Bound(phi_1) union Bound(phi_2), \
+      $
+    - $
+        Var(not phi_1) = Var(phi_1) \
+        Free(not phi_1) = Free(phi_1) \
+        Bound(not phi_1) = Bound(phi_1) \
+      $
+    - And now we come to the heart of the cheese, $Var((forall x) phi) = Var(phi)$, but:
+      $
+        Free((forall x) phi) = Free(phi) \\ {x}.
+      $
+      and
+      $
+        Bound((forall x) phi) = cases(
+          Bound(phi) union {x} &"   if" x in Free(phi),
+          Bound(phi) &"   if" x in.not Free(phi),
+        )
+      $
+    - $Var((exists x) phi), Free((exists x) phi)$, and $Bound((exists x) phi)$ are defined analogously. \
+  We call an $cal(L)$-formula $phi$ an $cal(L)$-sentence if $Free(phi) = nothing$.
+]
+#def[Vacuous][
+  Let $cal(L)$ be a first-order language and $phi$ an $cal(L)$-formula. If $phi$ is of the form $(forall x)psi$ (respectively $(exists x)psi$) and $x in.not Bound(phi)$ (i.e. $x in.not Free(psi)$), then we say that the quantifier $(forall x)$ (resp. $(exists x)$) is _vacuous_ in $phi$.
+]
+#def[Substitution for $underline(f) in Fun(cal(L))$][
+  Let $cal(L)$ be a first-order language, $t$ an $cal(L)$-term and $x, y in Var$. We define the term $t[y\/x]$ inductively, as follows:
+  + If $t$ is the variable $x$ then $t[y\/x]$ is the variable $y$.
+  + If $t$ is a constant symbol, then $t[y\/x]$ is just $t$.
+  + If $t$ is of the form $underline(f)(t_1, ..., t_n)$ for some $n$-ary function symbol $underline(f) in Fun(cal(L))$ and $cal(L)$-terms $t_1, ..., t_n$, then $t[t\/x]$ is the term $underline(f)(t_1 [y\/x], ..., t_n [y\/x])$.
+]
+#def[Subtitution for $underline(R) in Rel(cal(L))$][
+  Let $cal(L)$ be a first-order language, $phi$ an atomic $cal(L)$-formula and $x, y in Var$. Then, the atomic formula $phi[y\/x]$ is defined inductively as follows:
+  + If $phi$ is of the form $t_1 eq^. t_2$ for $cal(L)$-terms $t_1, t_2$ then $phi[y\/x]$ is the formula $t_1 [y\/x] =^. t_2 [y\/x]$.
+  + If $phi$ is of the form $underline(R) (t_1, ..., t_n)$ for some $n$-ary relation symbol $underline(R) in Rel(cal(L))$ and $cal(L)$-terms $t_1, ..., t_n$, then $phi[y\/x]$ is the formula $underline(R)(t_1 [y\/x], ..., t_n [y\/x])$.
+  We now have the fools to define a notion of _free-variable_ substitution. The definition is somewhat complicated.
+]
+#def[Free-variable substitution][
+  Let $cal(L)$ be a first-order language, $phi$ an $cal(L)$-formula and $x, y in Var$. We define $phi[y\/x]_"free"$ inductively, as follows:
+  + If $phi$ is atomic, then $phi[y\/x]_"free"$ is just the atomic formula $phi[y\/x]$ defined above.
+  + Suppose we have defined $phi_1 [y\/x]_"free"$ and $phi_2 [y\/x]_"free"$. Then:
+    - $(phi_1 and phi_2)[y\/x]_"free"$ is the formula $(phi_1 [y\/x]_"free" and phi_2 [y\/x]_"free")$.
+    - $(phi_1 or phi_2)[y\/x]_"free"$ is the formula $(phi_1 [y\/x]_"free" or phi_2 [y\/x]_"free")$.
+    - $(phi_1 -> phi_2)[y\/x]_"free"$ is the formula $(phi_1 [y\/x]_"free" -> phi_2 [y\/x]_"free")$.
+    - $(not phi_1)[y\/x]_"free"$ is the formula $(not phi_1 [y\/x]_"free")$.
+    - $(forall z) phi [y\/x]_"free"$ is defined as follows:
+      $
+        (forall z) phi[y\/x]_"free" := cases(
+          (forall x)phi &"   if" z = x,
+          (forall z)(phi[y\/x]_"free") &"   otherwise"
+        )
+      $
+    - $(exists z) phi [y\/x]_"free"$ is similarly defined as follows:
+      $
+        (exists z) phi[y\/x]_"free" := cases(
+          (exists x)phi &"   if" z = x,
+          (exists z)(phi[y\/x]_"free") &"   otherwise"
+        )
+      $
+]
+#def[Clean][
+  We say that an $cal(L)$-formula $phi$ is _clean_ if:
+  + $Bound(phi) inter Free(phi) = nothing$
+  + For any $x in Var$, if $phi$ has a subformula of the form $(forall x)psi$ or $(exists x) psi$, then $x in.not Bound(psi)$
 ]
 #exercise(num: "2.1/2.1.1")[
   *2.1. Axioms for Equality*. We need to make sure that our proof system understands that the symbol $eq^.$ behaves like equality. The best (and only) way to do this is to hardcode it:
