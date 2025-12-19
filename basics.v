@@ -9,9 +9,6 @@ From FOL Require Import overloadedbullshit.
 From Stdlib Require Import List.
 Import ListNotations.
 
-Require Import Lia.
-
-
 Set Implicit Arguments.
 Unset Strict Implicit.
 
