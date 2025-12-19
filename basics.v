@@ -246,18 +246,18 @@ Fixpoint subst_formula_free {L : Language} (phi : Formula L) (x y : nat) : Formu
 Definition disjoint {A : Type} (l1 l2 : list A) : Prop :=
   forall x, In x l1 -> ~ In x l2.
 
-(*Fixpoint subformula {L : Language} (phi psi : Formula L) : Prop :=*)
-(*  phi = psi \/*)
-(*  match phi with*)
-(*  | Fatom _ => False*)
-(*  | Fand phi1 phi2*)
-(*  | For phi1 phi2*)
-(*  | Fimpl phi1 phi2 => subformula phi1 psi \/ subformula phi2 psi*)
-(*  | Fnot phi1       => subformula phi1 psi*)
-(*  | Fforall _ phi1*)
-(*  | Fexists _ phi1  => subformula phi1 psi*)
-(*  end*)
-(*.*)
+Fixpoint subformula {L : Language} (phi psi : Formula L) : Prop :=
+  phi = psi \/
+  match phi with
+  | Fatom _ => False
+  | Fand phi1 phi2
+  | For phi1 phi2
+  | Fimpl phi1 phi2 => subformula phi1 psi \/ subformula phi2 psi
+  | Fnot phi1       => subformula phi1 psi
+  | Fforall _ phi1
+  | Fexists _ phi1  => subformula phi1 psi
+  end
+.
 
 Fixpoint clean_formula_rec (L : Language) (phi : Formula L) : Prop :=
   disjoint (bound_vars L phi) (free_vars L phi) /\
