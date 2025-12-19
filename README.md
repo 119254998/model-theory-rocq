@@ -20,3 +20,5 @@ Additionally, the encoding of
 - Completeness theorem for propositional logic
 - Henkin's construction
 are required.
+
+We do so under Kripke semantics, because it's easier to formalize. Tarskian semantics can be recovered from Kripke semantics by considering only models with one world.
