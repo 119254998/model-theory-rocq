@@ -293,3 +293,115 @@ Record Structure (L : Language) : Type := {
 }.
 
 Definition Assignment {L : Language} (M : Structure L) : Type := nat -> domain L M.
+
+Lemma vars_term_subst :
+  forall (L : Language) (t : Term L) (x y z : nat),
+  In z (vars_term (subst_term t x y)) -> z = y \/ In z (vars_term t).
+Proof.
+  intros L t.
+  induction t; intros x y z H.
+  - (* t = var v *)
+    simpl in H.
+    simpl.
+    destruct (Nat.eq_dec v x) as [Heq | Hneq].
+    + (* n = x *)
+      simpl in H.
+      destruct H as [H | H]; [left; auto | contradiction].
+    + (* n <> x *)
+      simpl in H.
+      destruct H as [H | H].
+      * right. subst. left. reflexivity.
+      * contradiction.
+  - (* t = func f l *)
+    simpl in H.
+    simpl.
+    apply in_concat in H.
+    destruct H as [a [H1 H2]].
+    apply in_map_iff in H1.
+    destruct H1 as [t' [Ht' Ht'in]].
+    subst a.
+Admitted.
+
+Lemma vars_term_subst_map :
+  forall (L : Language) (t : Term L) (x y : nat),
+    vars_term (subst_term t x y) = map (fun z => if Nat.eq_dec z x then y else z) (vars_term t).
+Proof. Admitted.
+
+Lemma vars_atom_subst :
+  forall (L : Language) (a : Atom L) x y,
+    vars_atom (subst_atom a x y)
+    = map (fun z => if Nat.eq_dec z x then y else z) (vars_atom a).
+Proof.
+  intros L a x y.
+  destruct a as [t1 t2 | R ts].
+  - (* equality atom *)
+    simpl.
+    rewrite map_app.
+    rewrite vars_term_subst_map.
+    rewrite vars_term_subst_map.
+    reflexivity.
+  - (* relation atom *)
+    simpl.
+    induction ts as [| t ts IH].
+    + simpl. reflexivity.
+    + simpl.
+      rewrite vars_term_subst_map.
+      rewrite IH.
+      rewrite map_app.
+      reflexivity.
+Qed.
+
+Lemma subst_closed_term :
+  forall (L : Language) (t : Term L) (x y : nat),
+    closed_term t -> subst_term t x y = t.
+Proof.
+  intros L t.
+  induction t as [n | f ts]; intros x y Hclosed.
+  - (* t = var n *)
+    unfold closed_term in Hclosed.
+    simpl in Hclosed.
+    discriminate Hclosed.
+  - (* t = func f ts *)
+    unfold closed_term in Hclosed.
+    simpl in Hclosed.
+    simpl.
+    f_equal.
+Admitted.
+
+Lemma vars_term_subst_irrelevant :
+  forall (L : Language) (t : Term L) (x y : nat),
+    ~ In x (vars_term t) -> vars_term (subst_term t x y) = vars_term t.
+Proof.
+  intros L t.
+  induction t as [n | f ts]; intros x y Hnotin.
+  - simpl in Hnotin.
+    simpl.
+    destruct (Nat.eq_dec n x) as [Heq | Hneq].
+    + subst.
+      exfalso.
+      apply Hnotin.
+      left; reflexivity.
+    + reflexivity.
+  - simpl in Hnotin.
+    simpl.
+    f_equal.
+    simpl.
+Admitted.
+
+Lemma vars_formula_and :
+  forall (L : Language) (phi psi : Formula L),
+    vars_formula _ (Fand phi psi) = vars_formula L phi ++ vars_formula L psi.
+Proof.
+  intros L phi psi.
+  simpl.
+  reflexivity.
+Qed.
+
+Lemma vars_formula_or :
+  forall (L : Language) (phi psi : Formula L),
+    vars_formula _ (For phi psi) = vars_formula L phi ++ vars_formula L psi.
+Proof.
+  intros L phi psi.
+  simpl.
+  reflexivity.
+Qed.
