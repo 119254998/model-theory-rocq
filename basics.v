@@ -865,3 +865,242 @@ Section Abstract_Semantics.
     admit.
   Admitted.
 End Abstract_Semantics.
+
+(**
+We're supposed to make a universal model and then prove 
+*)
+
+(*
+We admit all the substitution lemmas
+because they are tedious and I am unable to do them. In an 
+approach heavily inspired by the work of Aris and Ilik I will
+simply admit a set of lemmas.
+*)
+Section Substitution_Lemma.
+
+Fixpoint lsubst (T : Type) (k : nat) (l : list (T * typ)) (d : indiv) :=
+  match l with
+  | aA :: aAs => (fst aA, (subst k (snd aA) d)) :: (lsubst k aAs d)
+      | nil => nil
+  end.
+
+  Notation "l \ x" := (lsubst 0 l (free_var x)) (at level 70).
+  (*
+  The following is a function that swaps all occurrences of a variable x with a variable y
+  in a term a. The function is defined by induction on the structure of a.
+
+  Similarly we define functions for swapping variables in types and contexts.
+  *)
+  Fixpoint fvar_swap_indiv (x: var_free) (a: indiv) (y: var_free) {struct a} :indiv := 
+    let fvar_swap_list := fix fvar_swap_list (l: list indiv) {struct l} : list indiv := 
+      match l with 
+      | nil => nil 
+      | a' :: l' => fvar_swap_indiv x a' y :: fvar_swap_list l'
+      end in 
+    match a with 
+    | func f ld => 
+      func f (fvar_swap_list ld)
+    | free_var z => if (var_free_dec) x z then (free_var y) else (free_var z)
+    | bound_var z => bound_var z
+    end.
+  
+  Fixpoint fvar_swap_typ (x : var_free) (A : typ) (y : var_free) {struct A} : typ :=
+    let fvar_swap_list := fix fvar_swap_list 
+      (l : list indiv) {struct l} : list indiv :=
+      match l with 
+        | nil => nil
+        | a' :: l' => (fvar_swap_indiv x a' y) :: (fvar_swap_list l')
+      end in
+    match A with
+      | Ex A1      => Ex   (fvar_swap_typ x A1 y) 
+      | All A1     => All  (fvar_swap_typ x A1 y) 
+      | Conj A1 A2 => Conj (fvar_swap_typ x A1 y) (fvar_swap_typ x A2 y)
+      | Disj A1 A2 => Disj (fvar_swap_typ x A1 y) (fvar_swap_typ x A2 y)
+      | Imp A1 A2  => Imp  (fvar_swap_typ x A1 y) (fvar_swap_typ x A2 y)
+      | Atom P ld => 
+        Atom P (fvar_swap_list ld)
+    end.
+
+  Fixpoint fvar_swap_cxt (T : Type) (x : var_free) (l : list (T * typ)) (y : var_free) :=
+    match l with
+      | aA :: aAs => 
+        (fst aA, (fvar_swap_typ x (snd aA) y)) :: (fvar_swap_cxt x aAs y)
+      | nil => nil
+    end.
+
+  (*
+  appearance stuff
+  *)
+  Fixpoint fvar_appears_indiv (x : var_free)(a : indiv) {struct a} : bool :=
+    let fvar_appears_list := 
+      fix fvar_appears_list (x : var_free) (l : list indiv) {struct l} : bool :=
+      match l with
+        | nil => false
+        | d :: l' => 
+          orb (fvar_appears_indiv x d) (fvar_appears_list x l')
+      end
+      in match a with
+           | func f ld => fvar_appears_list x ld
+           | free_var z => if (var_free_dec x z) then true else false
+           | bound_var i => false
+         end.
+
+  Fixpoint fvar_appears_typ (x : var_free) (A : typ) {struct A} : bool :=
+    let fvar_appears_list := 
+      fix fvar_appears_list (x : var_free) (l : list indiv) {struct l} : bool :=
+      match l with
+        | nil => false
+        | d :: l' => 
+          orb (fvar_appears_indiv x d) (fvar_appears_list x l')
+      end
+      in match A with
+      | Ex A1      => fvar_appears_typ x A1
+      | All A1     => fvar_appears_typ x A1
+      | Conj A1 A2 => orb (fvar_appears_typ x A1) (fvar_appears_typ x A2)
+      | Disj A1 A2 => orb (fvar_appears_typ x A1) (fvar_appears_typ x A2)
+      | Imp A1 A2  => orb (fvar_appears_typ x A1) (fvar_appears_typ x A2)
+      | Atom P ld  => fvar_appears_list x ld
+         end.
+
+  Fixpoint fvar_appears_cxt (T : Type) (x : var_free) (l : list (T * typ)) : bool :=
+    match l with
+      | aA :: aAs => 
+        orb (fvar_appears_typ x (snd aA)) (fvar_appears_cxt x aAs)
+      | nil => false
+    end.
+
+  (*
+  Define the free variables of a term, type, or context
+  *)
+  Fixpoint FV_indiv (d : indiv) {struct d} : list var_free :=
+    let FV_indiv_list := 
+      fix FV_indiv_list (l : list indiv) {struct l} : list var_free :=
+      match l with
+        | nil => nil
+        | d' :: l' => List.app (FV_indiv d') (FV_indiv_list l')
+      end in
+    match d with
+      | func f vl => FV_indiv_list vl
+      | free_var z => (z::nil)
+      | bound_var i => nil
+    end.
+
+  Fixpoint FV_typ (A:typ) {struct A} : list var_free :=
+    let FV_indiv_list := 
+      fix FV_indiv_list (l:list indiv) {struct l} : list var_free :=
+      match l with
+        | nil => nil
+        | d' :: l' => List.app (FV_indiv d') (FV_indiv_list l')
+      end in
+    match A with
+      | Ex A1      => FV_typ A1
+      | All A1     => FV_typ A1
+      | Conj A1 A2 => (FV_typ A1) ++ (FV_typ A2)
+      | Disj A1 A2 => (FV_typ A1) ++ (FV_typ A2)
+      | Imp A1 A2  => (FV_typ A1) ++ (FV_typ A2)
+      | Atom P vl  => FV_indiv_list vl
+    end.
+
+  Fixpoint FV_cxt (T:Type)(l:list (T*typ)) {struct l} : list var_free :=
+    match l with
+      | aA :: aAs => FV_typ (snd aA) ++ (FV_cxt aAs)
+      | nil => nil
+    end.
+
+  Lemma locli_free_var : forall x, locli (free_var x).
+  Proof.
+    unfold locli. auto.
+  Defined.
+  (*
+  Claim: for all A d k, if A != d then subst k A d = A
+  where A: typ, d: indiv, k: nat
+
+  Basically, if we substitute d for A in A, we get A. Generic, 
+  and extends basically to the definition of substitution for
+  PROPOSITIONAL logic.
+  *)
+  Theorem locl_locli_subst: forall A m, 
+    (forall k d, subst (S (k + m)) A d = A) ->
+    forall d, 
+      (forall k d0, subst_indiv (k + m) d d0 = d) ->
+      forall k' d', 
+        subst (k'+m) (subst m A d) d' = subst m A d.
+  Proof. Admitted. 
+
+  (*
+  Additionally, if we substitute d for A in a forall type, we get back A^^d
+  *)
+  Theorem locl_locli_subst': forall A, locl (All A) ->
+    forall d, locli d -> locl (A^^d).
+  Proof. 
+    unfold locl, locli. simpl. intros. replace k with (plus k 0). apply locl_locli_subst. intros. assert (H1 := H (plus k0 0) d1). 
+    - congruence.
+    - intros. auto.
+    - auto.
+  Qed.
+
+  (*
+  Additionally, if we substitute in exists
+  *)
+  Theorem locl_locli_subst'': forall A, locl (Ex A) ->
+    forall d, locli d -> locl (A^^d).
+  Proof. 
+    unfold locl, locli. simpl. intros. replace k with (plus k 0). apply locl_locli_subst. intros. assert (H1 := H (plus k0 0) d1). 
+    - congruence.
+    - intros. auto.
+    - auto.
+  Qed. (*i dentical proof!*)
+
+  (*
+  Claim: Swapping free variables commutes with a substitution that does not affect the term.
+
+  Equivalently (in De Bruijn terms):
+  - a has no free variables at or above index m
+  - all free variables of a are below m
+
+  This is kripke specific to some degree and you should see the thoughts in the other journals about this
+  *)
+  Theorem locli_fvar_swap : forall a m, 
+    (forall k d, subst_indiv (plus k m) a d = a) ->
+    forall x y k d, 
+      subst_indiv (plus k m) (fvar_swap_indiv x a y) d = fvar_swap_indiv x a y.
+  Proof.  
+    intro a. destruct a. auto. simpl. intros. destruct var_free_dec.
+    (*actually difficult*)
+  Admitted.
+
+  (*
+  Formula level analogggg
+  *)
+  Theorem locl_fvar_swap : forall A m, 
+    (forall k d, subst (plus k m) A d = A) ->
+    forall x y k d, 
+      subst (plus k m) (fvar_swap_typ x A y) d = fvar_swap_typ x A y.
+  Proof. Admitted.
+
+  (*
+  Free variable swaps communite with substitution
+  *)
+  Lemma subst_fvar_swap : forall A k d x y, fvar_swap_typ x (subst k A d) y 
+    = subst k (fvar_swap_typ x A y) (fvar_swap_indiv x d y).
+  Proof. Admitted.
+
+  (*
+  quantifier–invariance / uniformization principle for proofs under variable opening
+  *)
+  Lemma proof_trm_quant_invar : forall Gamma Delta A,
+    let L := FV_typ A ++ FV_cxt Gamma ++ FV_cxt Delta in
+    (forall x, x\notin L ->
+      sigT (fun t:term => proof_trm Gamma t (A^x) Delta)) ->
+    sigT (fun s:term => forall y, y\notin L -> proof_trm Gamma s (A^y) Delta).
+  Proof. Admitted.
+
+  Lemma proof_ect_quant_invar : forall Gamma Delta A,
+  let L := FV_typ A ++ FV_cxt Gamma ++ FV_cxt Delta in
+  (forall x, x\notin L ->
+    sigT (fun e:ect => proof_ect Gamma e (A^x) Delta)) ->
+  sigT (fun f:ect => forall y, y\notin L -> proof_ect Gamma f (A^y) Delta).
+  Proof. Admitted.
+  
+End Substitution_Lemma.
+

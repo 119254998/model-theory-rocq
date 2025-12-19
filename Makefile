@@ -1,6 +1,6 @@
 COQMFFLAGS := -Q . FOL
 
-ALLVFILES := overloadedbullshit.v
+ALLVFILES := overloadedbullshit.v basics.v ksemantics.v
 
 build: Makefile.coq
 	$(MAKE) -f Makefile.coq
