@@ -9,6 +9,9 @@ From FOL Require Import overloadedbullshit.
 From Stdlib Require Import List.
 Import ListNotations.
 
+Require Import Lia.
+
+
 Set Implicit Arguments.
 Unset Strict Implicit.
 
@@ -435,6 +438,21 @@ Section Abstract_Semantics.
       le (depth A) n -> 
       (sforces' n w A <-> sforces' (S n) w A).
     Proof.
+      intros n A w Hdepth. revert n w Hdepth. induction A; intros n w Hdepth; simpl in Hdepth.
+
+      split; intros H. simpl. destruct n as [| m]. inversion Hdepth. simpl in H. assumption. destruct n as [| m]. inversion Hdepth. simpl. simpl in H. assumption.
+
+      destruct n as [| m]. inversion Hdepth. simpl. split. intro H. intros w' Hw HK. apply le_S_n in Hdepth. 
+      assert (H1 : le (depth A1) m). apply le_trans with (m := Nat.max (depth A1) (depth A2)). apply le_max_l. assumption.
+
+      assert (H2 : le (depth A2) m). apply le_trans with (m := Nat.max (depth A1) (depth A2)). apply le_max_r. assumption.
+
+      specialize (IHA1 m w' H1).  
+      specialize (IHA2 m w' H2).  
+      destruct IHA1.
+      destruct IHA2.
+      intros w'' Hw' HK'.
+      unfold Kont in HK'. 
       admit.
     Admitted.
 
