@@ -1,6 +1,6 @@
 COQMFFLAGS := -Q . FOL
 
-ALLVFILES := tarski.v
+ALLVFILES := tarski.v overloadedbullshit.v
 
 build: Makefile.coq
 	$(MAKE) -f Makefile.coq
