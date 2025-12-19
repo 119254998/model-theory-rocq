@@ -416,6 +416,20 @@
   + $Bound(phi) inter Free(phi) = nothing$
   + For any $x in Var$, if $phi$ has a subformula of the form $(forall x)psi$ or $(exists x) psi$, then $x in.not Bound(psi)$
 ]
+#def[$cal(L)$-structure][
+  Let $cal(L)$ be a first-order language. An $cal(L)$-structure $cal(M)$ consists of a non-empty set $M$ together with:
+  + An element $c^(cal(M)) in M$, for each constant symbol $underline(c) in Const(cal(L))$
+  + A subset $R^(cal(M)) subset.eq M^n$, for each $n$-ary relation symbol $underline(R) in Rel(R)$.
+  + A function $f^(cal(M)) : M^n -> M$, for each $n$-ary function symbol $underline(f) in Fun(cal(L))$.
+  Altogether, we often write:
+  $
+    cal(M) = (M; (c^cal(M))_(underline(c) in Const(cal(L))), (R^(cal(M)))_(underline(R) in Rel(cal(L))), (f^(cal(M)))_(underline(f) in Fun(cal(L)))).
+  $
+  We call $M$ the _domain_ or _universe_ of the $cal(L)$-structure $cal(M)$. For each constant symbol $underline(c) in Const(cal(L))$ we call $c^(cal(M))$ the _interpretation_ of $underline(c)$ in $cal(M)$ and similarly for relation symbols and function symbols.
+]
+#def[Assignment][
+  Let $cal(L)$ be a first-order language and $cal(M) = (M; ...)$ be an $cal(L)$-structure. An _assignment_ is just a function $alpha$ that assigns to each variable $x in Var$ an element of $M$, i.e. a function $alpha : Var -> M$.
+]
 #exercise(num: "2.1/2.1.1")[
   *2.1. Axioms for Equality*. We need to make sure that our proof system understands that the symbol $eq^.$ behaves like equality. The best (and only) way to do this is to hardcode it:
   - (E1) Reflexivity: $(forall x)(x eq^. x)$.

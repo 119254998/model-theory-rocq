@@ -175,10 +175,124 @@ Definition vars_formula_set (L : Language) (phi : Formula L) := nodup Nat.eq_dec
 Definition free_vars_set    (L : Language) (phi : Formula L) := nodup Nat.eq_dec (free_vars L phi).
 Definition bound_vars_set   (L : Language) (phi : Formula L) := nodup Nat.eq_dec (bound_vars L phi).
 
-Definition closed_formula   (L : Language) (phi : Formula L) : Prop := free_vars L phi = [].
+Definition sentence (L : Language) (phi : Formula L) : Prop := free_vars L phi = [].
+
+Definition vacuous_forall (L : Language) (x : nat) (phi : Formula L) : Prop :=
+  match phi with
+  | Fforall y psi => y = x /\ ~ In x (free_vars L psi)
+  | _ => False
+  end
+.
+
+Definition vacuous_exists (L : Language) (x : nat) (phi : Formula L) : Prop :=
+  match phi with
+  | Fexists y psi => y = x /\ ~ In x (free_vars L psi)
+  | _ => False
+  end
+.
+
+Section VacuumEx.
+Definition L : Language :=
+  {| Functions := unit;
+     Relations := unit;
+     arityF := fun _ => 0;
+     arityR := fun _ => 2 |}.
+Example test_vacuum :
+  let phi := Fforall 1 (Fatom (eq_atom (var 2) (var 3))) in vacuous_forall L 1 phi.
+Proof.
+  unfold vacuous_forall.
+  simpl.
+  split; auto.
+  intro H. inversion H. discriminate. Abort.
+End VacuumEx.
+
+Fixpoint subst_term {L : Language} (t : Term L) (x y : nat) : Term L :=
+  match t with
+  | var z => if Nat.eq_dec z x then var y else var z
+  | func f ts => func f (map (fun t' => subst_term t' x y) ts)
+  end
+.
+
+Definition subst_atom {L : Language} (phi : Atom L) (x y : nat) : Atom L :=
+  match phi with
+  | eq_atom t1 t2 => eq_atom (subst_term t1 x y) (subst_term t2 x y)
+  | rel_atom R ts => rel_atom R (map (fun t => subst_term t x y) ts)
+  end
+.
+
+Fixpoint subst_formula_free {L : Language} (phi : Formula L) (x y : nat) : Formula L :=
+  match phi with
+  | Fatom a =>
+      Fatom (subst_atom a x y)
+  | Fand phi1 phi2 =>
+      Fand (subst_formula_free phi1 x y) (subst_formula_free phi2 x y)
+  | For phi1 phi2 =>
+      For (subst_formula_free phi1 x y) (subst_formula_free phi2 x y)
+  | Fimpl phi1 phi2 =>
+      Fimpl (subst_formula_free phi1 x y) (subst_formula_free phi2 x y)
+  | Fnot phi1 =>
+      Fnot (subst_formula_free phi1 x y)
+  | Fforall z phi1 =>
+      if Nat.eq_dec z x
+      then Fforall z phi1
+      else Fforall z (subst_formula_free phi1 x y)
+  | Fexists z phi1 =>
+      if Nat.eq_dec z x
+      then Fexists z phi1
+      else Fexists z (subst_formula_free phi1 x y)
+  end
+.
+
+Definition disjoint {A : Type} (l1 l2 : list A) : Prop :=
+  forall x, In x l1 -> ~ In x l2.
+
+(*Fixpoint subformula {L : Language} (phi psi : Formula L) : Prop :=*)
+(*  phi = psi \/*)
+(*  match phi with*)
+(*  | Fatom _ => False*)
+(*  | Fand phi1 phi2*)
+(*  | For phi1 phi2*)
+(*  | Fimpl phi1 phi2 => subformula phi1 psi \/ subformula phi2 psi*)
+(*  | Fnot phi1       => subformula phi1 psi*)
+(*  | Fforall _ phi1*)
+(*  | Fexists _ phi1  => subformula phi1 psi*)
+(*  end*)
+(*.*)
+
+Fixpoint clean_formula_rec (L : Language) (phi : Formula L) : Prop :=
+  disjoint (bound_vars L phi) (free_vars L phi) /\
+  match phi with
+  | Fatom _ => True
+  | Fand phi1 phi2
+  | For phi1 phi2
+  | Fimpl phi1 phi2 => clean_formula_rec L phi1 /\ clean_formula_rec L phi2
+  | Fnot phi1       => clean_formula_rec L phi1
+  | Fforall x phi1  => ~ In x (bound_vars L phi1) /\ clean_formula_rec L phi1
+  | Fexists x phi1  => ~ In x (bound_vars L phi1) /\ clean_formula_rec L phi1
+  end.
+
+Definition clean_formula (L : Language) (phi : Formula L) : Prop := clean_formula_rec L phi.
+
+Example phi_clean_example : clean_formula L (Fforall 1 (Fatom (eq_atom (var 2) (var 3)))).
+Proof.
+  simpl. split.
+  - intros x H. inversion H.
+  - split; compute; auto.
+Qed.
 
 (*Arguments Formula {L}.*)
 (*Arguments wf_formula {L} _.*)
+
+Record Structure (L : Language) : Type := {
+  domain : Type;
+  (* remember, constants are functions with 0 arity *)
+  interp_fun : forall (f : Functions L),
+    list domain -> domain;
+  interp_rel : forall (R : Relations L),
+    list domain -> Prop
+}.
+
+Definition Assignment {L : Language} (M : Structure L) : Type := nat -> domain L M.
 
 (*
 See week 3b of Aris' notes for reference on def of Languages
